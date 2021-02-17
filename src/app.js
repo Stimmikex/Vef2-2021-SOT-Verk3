@@ -35,6 +35,17 @@ async function getData() {
   return 'No Data';
 }
 
+async function getAmountOfData() {
+  const data = await query('SELECT COUNT(*) FROM signatures');
+  try {
+    return data;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(e);
+  }
+  return 'No Data';
+}
+
 function checker(check) {
   if (check === 'on') {
     return true;
@@ -44,11 +55,26 @@ function checker(check) {
 
 const nationalIdPattern = '^[0-9]{6}-?[0-9]{4}$';
 let errorMessages = '';
+let curPage = 0;
 
 app.get('/', async (req, res) => {
   const data = await getData();
+  const amount = await getAmountOfData();
   try {
-    res.render('index', { title: 'Undirskriftarlisti', data, errorMessages });
+    res.render('index', { title: 'Undirskriftarlisti', data, errorMessages, amount, curPage });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(e);
+  }
+});
+
+app.get('/:data?', async (req, res) => {
+  const data = await getData();
+  const id = req.params.data;
+  curPage = id;
+  const amount = await getAmountOfData();
+  try {
+    res.render('index', { title: 'Undirskriftarlisti', data, errorMessages, amount, curPage });
   } catch (e) {
     // eslint-disable-next-line no-console
     console.log(e);
@@ -93,8 +119,7 @@ app.post(
       //   </ul>
       // `,
       // );
-      const data = await getData();
-      return res.render('index', { title: 'Undirskriftarlisti', data, errorMessages });
+      return res.redirect('/');
     }
     return next();
   },
@@ -126,11 +151,10 @@ app.post(
 
     const test = await query('INSERT INTO signatures(name, nationalId, comment, anonymous) VALUES($1, $2, $3, $4) RETURNING *', [xssName, xssNational, xssText, checker(check)]);
 
-    const data = await getData();
     if (test.detail) {
       errorMessages = [test.detail];
     }
-    return res.render('index', { title: 'Undirskriftarlisti', data, errorMessages });
+    return res.redirect('/');
   },
 );
 

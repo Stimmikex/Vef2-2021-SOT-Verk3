@@ -1,4 +1,7 @@
 <div>
+  <div>
+    <p>Amount of data: <%= amount.rows[0].count %></p> 
+  </div>
   <table class="grid table">
       <tr class="row table-header">
         <th class="col-2">Dags</th>
@@ -18,4 +21,9 @@
         </tr>
       <% }) %> 
   </table>
+</div>
+<div>
+  <a href="/<%= curPage - 1 %> ">Back</a>
+  <p>current page: <%= curPage+'/'+Math.round(amount.rows[0].count/50) %>  </p>
+  <a href="/<%= curPage + 1 %> ">Next</a>
 </div>
