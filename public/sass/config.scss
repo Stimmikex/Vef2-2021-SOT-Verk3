@@ -1,0 +1,18 @@
+// Hér eiga að vera stillingar með scss breytum fyrir:
+// grid, max-width á síðu, transitions,
+// liti, margin-bottom gildi sem eru sameiginleg
+
+$max-width: 1400px;
+
+$columns: 12;
+$gutter: 20px;
+
+$bottom-margin: 2rem;
+
+$color-black: #000;
+$color-almost-black: #222;
+$color-gray: #999;
+$color-light-gray: #ccc;
+$color-lightest-gray: #eee;
+
+$transition: 300ms ease-in-out;

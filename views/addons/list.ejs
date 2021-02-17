@@ -1,0 +1,21 @@
+<div>
+  <table class="grid table">
+      <tr class="row table-header">
+        <th class="col-2">Dags</th>
+        <th class="col-2">Nafn</th>
+        <th class="col-6">Athugasemd</th>
+      </tr>
+      <% data.forEach((item) => { %>
+        <tr class="row table-data">
+          <% let dStr = new Date(item.signed).toDateString() %> 
+          <td class="col-2"><%= dStr %></td>
+          <% if (!item.anonymous) { %>
+            <td class="col-2"><%= item.name; %></td>
+          <% } else { %>
+            <td class="col-2"></td>
+          <% } %>
+          <td class="col-8"><%= item.comment %></td>
+        </tr>
+      <% }) %> 
+  </table>
+</div>

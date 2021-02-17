@@ -8,25 +8,30 @@ const {
   NODE_ENV: nodeEnv = 'development',
 } = process.env;
 
-// Notum SSL tengingu við gagnagrunn ef við erum *ekki* í development mode, þ.e.a.s. á local vél
+if (!connectionString) {
+  console.error('Vantar DATABASE_URL!');
+  process.exit(1);
+}
+
 const ssl = nodeEnv !== 'development' ? { rejectUnauthorized: false } : false;
 
 const pool = new pg.Pool({ connectionString, ssl });
 
 pool.on('error', (err) => {
-  console.error('Villa í tengingu við gagnagrunn, forrit hættir', err);
+  console.error('Unexpected error on idle client', err);
   process.exit(-1);
 });
 
-export async function query(_query, values = []) {
+export async function query(q, values = []) {
   const client = await pool.connect();
 
   try {
-    const result = await client.query(_query, values);
+    const result = await client.query(q, values);
     return result;
+  } catch (e) {
+    console.error('Error selecting', e);
+    return e;
   } finally {
     client.release();
   }
 }
-
-// TODO rest af föllum
