@@ -23,7 +23,11 @@
   </table>
 </div>
 <div>
-  <a href="/<%= curPage - 1 %> ">Back</a>
-  <p>current page: <%= curPage+'/'+Math.round(amount.rows[0].count/50) %>  </p>
-  <a href="/<%= curPage + 1 %> ">Next</a>
+  <% if(parseInt(curPage) === 1) { %>
+    <p>Back</p>
+  <% } else { %>
+    <a href="/<%= parseInt(curPage) - 1 %>">Back</a>
+  <% } %>   
+  <p>current page: <%= parseInt(curPage) + '/' + Math.round(amount.rows[0].count/50) %>  </p>
+  <a href="/<%= parseInt(curPage) + 1 %>">Next</a>
 </div>

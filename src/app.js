@@ -3,6 +3,10 @@ import dotenv from 'dotenv';
 import xss from 'xss';
 import { body, validationResult } from 'express-validator';
 import { query } from './db.js';
+import passport from 'passport';
+import session from 'express-session';
+import { Strategy } from 'passport-local';
+import { comparePasswords, findByUsername, findById } from './users.js';
 
 dotenv.config();
 
@@ -23,8 +27,9 @@ app.use(express.urlencoded({
   extended: true,
 }));
 
-async function getData() {
-  let data = await query('SELECT * FROM signatures ORDER BY signed DESC LIMIT 50;');
+async function getData(low, high) {
+  let data = await query(`SELECT * FROM signatures ORDER BY signed DESC LIMIT ${low} OFFSET ${high};`);
+  console.log(data);
   data = data.rows;
   try {
     return data;
@@ -58,20 +63,8 @@ let errorMessages = '';
 let curPage = 0;
 
 app.get('/', async (req, res) => {
-  const data = await getData();
-  const amount = await getAmountOfData();
-  try {
-    res.render('index', { title: 'Undirskriftarlisti', data, errorMessages, amount, curPage });
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log(e);
-  }
-});
-
-app.get('/:data?', async (req, res) => {
-  const data = await getData();
-  const id = req.params.data;
-  curPage = id;
+  const data = await getData(50, 1);
+  curPage = 0;
   const amount = await getAmountOfData();
   try {
     res.render('index', { title: 'Undirskriftarlisti', data, errorMessages, amount, curPage });
@@ -157,6 +150,147 @@ app.post(
     return res.redirect('/');
   },
 );
+
+const sessionSecret = 'leyndarmál';
+
+app.use(session({
+  secret: sessionSecret,
+  resave: false,
+  saveUninitialized: false,
+  maxAge: 20 * 1000, // 20 sek
+}));
+
+/**
+ * Athugar hvort username og password sé til í notandakerfi.
+ * Callback tekur við villu sem fyrsta argument, annað argument er
+ * - `false` ef notandi ekki til eða lykilorð vitlaust
+ * - Notandahlutur ef rétt
+ *
+ * @param {string} username Notandanafn til að athuga
+ * @param {string} password Lykilorð til að athuga
+ * @param {function} done Fall sem kallað er í með niðurstöðu
+ */
+async function strat(username, password, done) {
+  try {
+    const user = await findByUsername(username);
+
+    if (!user) {
+      return done(null, false);
+    }
+
+    // Verður annað hvort notanda hlutur ef lykilorð rétt, eða false
+    const result = await comparePasswords(password, user);
+    return done(null, result);
+  } catch (err) {
+    console.error(err);
+    return done(err);
+  }
+}
+
+// Notum local strategy með „strattinu“ okkar til að leita að notanda
+passport.use(new Strategy(strat));
+
+// getum stillt með því að senda options hlut með
+// passport.use(new Strategy({ usernameField: 'email' }, strat));
+
+// Geymum id á notanda í session, það er nóg til að vita hvaða notandi þetta er
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+// Sækir notanda út frá id
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await findById(id);
+    done(null, user);
+  } catch (err) {
+    done(err);
+  }
+});
+
+// Látum express nota passport með session
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Gott að skilgreina eitthvað svona til að gera user hlut aðgengilegan í
+// viewum ef við erum að nota þannig
+app.use((req, res, next) => {
+  if (req.isAuthenticated()) {
+    // getum núna notað user í viewum
+    res.locals.user = req.user;
+  }
+
+  next();
+});
+
+// Hjálpar middleware sem athugar hvort notandi sé innskráður og hleypir okkur
+// þá áfram, annars sendir á /login
+function ensureLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+
+  return res.redirect('/login');
+}
+
+// app.get('/', (req, res) => {
+//   if (req.isAuthenticated()) {
+//     // req.user kemur beint úr users.js
+//     return res.send(`
+//       <p>Innskráður notandi er ${req.user.username}</p>
+//       <p>Þú ert ${req.user.admin ? 'admin.' : 'ekki admin.'}</p>
+//       <p><a href="/logout">Útskráning</a></p>
+//       <p><a href="/admin">Skoða leyndarmál</a></p>
+//     `);
+//   }
+
+//   return res.send(`
+//     <p><a href="/login">Innskráning</a></p>
+//   `);
+// });
+
+app.get('/login', (req, res) => {
+  if (req.isAuthenticated()) {
+    return res.redirect('/');
+  }
+
+  let message = '';
+
+  // Athugum hvort einhver skilaboð séu til í session, ef svo er birtum þau
+  // og hreinsum skilaboð
+  if (req.session.messages && req.session.messages.length > 0) {
+    message = req.session.messages.join(', ');
+    req.session.messages = [];
+  }
+
+  // Ef við breytum name á öðrum hvorum reitnum að neðan mun ekkert virka
+  // nema við höfum stillt í samræmi, sjá línu 64
+  return res.send(`
+    <form method="post" action="/login" autocomplete="off">
+      <label>Notendanafn: <input type="text" name="username"></label>
+      <label>Lykilorð: <input type="password" name="password"></label>
+      <button>Innskrá</button>
+    </form>
+    <p>${message}</p>
+  `);
+});
+
+app.get('/0', async (req, res) => {
+  return res.redirect('/');
+});
+
+app.get('/:data?', async (req, res) => {
+  const id = req.params.data;
+  curPage = id;
+  const data = await getData(50, curPage * 50);
+  const amount = await getAmountOfData();
+  try {
+    res.render('index', { title: 'Undirskriftarlisti', data, errorMessages, amount, curPage });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(e);
+  }
+});
 
 app.use((req, res) => {
   res.status(404).send("Sorry can't find that!");

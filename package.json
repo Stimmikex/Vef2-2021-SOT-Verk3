@@ -30,12 +30,16 @@
     "stylelint-config-standard": "^20.0.0"
   },
   "dependencies": {
+    "bcrypt": "^5.0.0",
     "date-fns": "^2.16.1",
     "dotenv": "^8.2.0",
     "ejs": "^3.1.5",
     "express": "^4.17.1",
+    "express-session": "^1.17.1",
     "express-validator": "^6.9.2",
     "faker": "^5.4.0",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0",
     "pg": "^8.5.1",
     "xss": "^1.0.8"
   }

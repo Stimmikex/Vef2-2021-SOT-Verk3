@@ -16,6 +16,8 @@ function makeFaker() {
   let anon = false;
   if (getRandomNumberBetween(0, 1) === 1) {
     name = faker.lorem.sentence();
+  }
+  if (getRandomNumberBetween(0, 1) === 1) {
     anon = true;
   }
   const ssn = getRandomNumberBetween(0, 9999999999);
@@ -35,7 +37,8 @@ function makeFaker() {
 
 function initData() {
   for (let i = 0; i < 500; i += 1) {
-    query('INSERT INTO signatures(name, nationalId, comment, anonymous, signed) VALUES($1, $2, $3, $4, $5) RETURNING *', [makeFaker().name, makeFaker().ssn, makeFaker().text, makeFaker().anon, makeFaker().date]);
+    const person = makeFaker();
+    query('INSERT INTO signatures(name, nationalId, comment, anonymous, signed) VALUES($1, $2, $3, $4, $5) RETURNING *', [person.name, person.ssn, person.text, person.anon, person.date]);
   }
 }
 
