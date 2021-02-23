@@ -18,16 +18,25 @@
             <td class="col-2"></td>
           <% } %>
           <td class="col-8"><%= item.comment %></td>
+          <% if(usertest !== '') { %>
+            <td><form method="post" action="/delete/<%= item.id %> ">
+              <input type="submit" value="delete">
+            </form></td>
+          <% } %> 
         </tr>
       <% }) %> 
   </table>
 </div>
 <div>
-  <% if(parseInt(curPage) === 1) { %>
+  <% if(parseInt(curPage) === 0) { %>
     <p>Back</p>
   <% } else { %>
     <a href="/<%= parseInt(curPage) - 1 %>">Back</a>
-  <% } %>   
-  <p>current page: <%= parseInt(curPage) + '/' + Math.round(amount.rows[0].count/50) %>  </p>
-  <a href="/<%= parseInt(curPage) + 1 %>">Next</a>
+  <% } %>  
+  <p>current page: <%= (parseInt(curPage)+1) + '/' + Math.round(amount.rows[0].count/50) %>  </p>
+  <% if((Math.round(amount.rows[0].count/50)-1) <= (curPage)) { %>
+    <p>no more</p>
+  <% } else { %>
+    <a href="/<%= parseInt(curPage) + 1 %>">Next</a>
+  <% } %> 
 </div>

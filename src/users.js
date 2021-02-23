@@ -1,60 +1,69 @@
-/**
- * "Static notendagrunnur"
- * Notendur eru harðkóðaðir og ekkert hægt að breyta þeim.
- * Ef við notum notendagagnagrunn, t.d. í postgres, útfærum við leit að notendum
- * hér, ásamt því að passa upp á að lykilorð séu lögleg.
- */
-
 import bcrypt from 'bcrypt';
+import pg from 'pg';
+import dotenv from 'dotenv';
 
-const records = [
-  {
-    id: 1,
-    username: 'admin',
+dotenv.config();
 
-    // 123
-    password: '$2a$11$pgj3.zySyFOvIQEpD7W6Aund1Tw.BFarXxgLJxLbrzIv/4Nteisii',
-    admin: true,
-  },
-  {
-    id: 2,
-    username: 'oli',
+const connectionString = process.env.DATABASE_URL;
 
-    // 123
-    password: '$2a$11$pgj3.zySyFOvIQEpD7W6Aund1Tw.BFarXxgLJxLbrzIv/4Nteisii',
-    admin: false,
-  },
-];
+const pool = new pg.Pool({ connectionString });
 
-export async function comparePasswords(password, user) {
-  const ok = await bcrypt.compare(password, user.password);
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
 
-  if (ok) {
-    return user;
+export async function query(q, values = []) {
+  const client = await pool.connect();
+
+  let result;
+
+  try {
+    result = await client.query(q, values);
+  } catch (err) {
+    console.error('Villa í query', err);
+    throw err;
+  } finally {
+    client.release();
+  }
+
+  return result;
+}
+
+export async function comparePasswords(password, hash) {
+  const result = await bcrypt.compare(password, hash);
+
+  return result;
+}
+
+export async function findByUsername(username) {
+  const q = 'SELECT * FROM users WHERE username = $1';
+
+  try {
+    const result = await query(q, [username]);
+
+    if (result.rowCount === 1) {
+      return result.rows[0];
+    }
+  } catch (e) {
+    console.error('Gat ekki fundið notanda eftir notendnafni');
+    return null;
   }
 
   return false;
 }
 
-// Merkjum sem async þó ekki verið að nota await, þar sem þetta er notað í
-// app.js gerir ráð fyrir async falli
-export async function findByUsername(username) {
-  const found = records.find((u) => u.username === username);
-
-  if (found) {
-    return found;
-  }
-
-  return null;
-}
-
-// Merkjum sem async þó ekki verið að nota await, þar sem þetta er notað í
-// app.js gerir ráð fyrir async falli
 export async function findById(id) {
-  const found = records.find((u) => u.id === id);
+  const q = 'SELECT * FROM users WHERE id = $1';
 
-  if (found) {
-    return found;
+  try {
+    const result = await query(q, [id]);
+
+    if (result.rowCount === 1) {
+      return result.rows[0];
+    }
+  } catch (e) {
+    console.error('Gat ekki fundið notanda eftir id');
   }
 
   return null;
