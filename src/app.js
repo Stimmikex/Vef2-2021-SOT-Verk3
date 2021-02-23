@@ -38,12 +38,6 @@ let errorMessages = '';
 let curPage = 0;
 let usertest = '';
 
-app.get('/logout', (req, res) => {
-  usertest = '';
-  req.logout();
-  res.redirect('/');
-});
-
 app.get('/', async (req, res) => {
   const data = await getData(50, 1);
   curPage = 0;
@@ -245,9 +239,11 @@ app.post('/delete/:data?', (req, res) => {
   return res.redirect('/');
 });
 
-// app.get('/0', async (req, res) => {
-//   res.redirect('/');
-// });
+app.get('/logout', (req, res) => {
+  usertest = '';
+  req.logout();
+  res.redirect('/');
+});
 
 app.get('/:data?', async (req, res) => {
   const id = req.params.data;
@@ -263,12 +259,6 @@ app.get('/:data?', async (req, res) => {
     // eslint-disable-next-line no-console
     console.log(e);
   }
-});
-
-app.get('/logout', (req, res) => {
-  usertest = '';
-  req.logout();
-  res.redirect('/');
 });
 
 app.use((req, res) => {
