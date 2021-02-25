@@ -12,6 +12,7 @@ import { getData, deleteData, getAmountOfData } from './dataimp.js';
 dotenv.config();
 
 const {
+  SESSION_SECRET: sessionSecret,
   PORT: port = 3000,
 } = process.env;
 
@@ -109,7 +110,7 @@ app.post(
   },
 );
 
-const sessionSecret = 'leyndarmál';
+const sessionSecret = 'sessionSecret';
 
 app.use(session({
   secret: sessionSecret,
