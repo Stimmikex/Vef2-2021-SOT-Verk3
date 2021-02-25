@@ -10,7 +10,7 @@ function getRandomNumberBetween(min, max) {
 }
 
 function makeFaker() {
-  let nottoday = Date.now() - 12096e5;
+  const nottoday = Date.now() - 12096e5;
   const date = getRandomDate(Date.now(), nottoday);
   let name = '';
   let anon = false;
@@ -25,12 +25,12 @@ function makeFaker() {
   if (getRandomNumberBetween(0, 1) === 1) {
     text = faker.lorem.sentence();
   }
-  let person = {
-    date: date,
-    name: name,
-    ssn: ssn,
-    text: text,
-    anon: anon
+  const person = {
+    date,
+    name,
+    ssn,
+    text,
+    anon,
   };
   return person;
 }

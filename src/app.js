@@ -43,7 +43,14 @@ app.get('/', async (req, res) => {
   curPage = 0;
   const amount = await getAmountOfData();
   try {
-    res.render('index', { title: 'Undirskriftarlisti', data, errorMessages, amount, curPage, usertest });
+    res.render('index', {
+      title: 'Undirskriftarlisti',
+      data,
+      errorMessages,
+      amount,
+      curPage,
+      usertest,
+    });
   } catch (e) {
     // eslint-disable-next-line no-console
     console.log(e);
@@ -221,7 +228,14 @@ app.get('/admin', async (req, res) => {
     const data = await getData(50, curPage * 50);
     const amount = await getAmountOfData();
     try {
-      res.render('admin', { title: 'Undirskriftarlisti - Admin', data, usertest, curPage, amount, errorMessages});
+      res.render('admin', {
+        title: 'Undirskriftarlisti - Admin',
+        data,
+        usertest,
+        curPage,
+        amount,
+        errorMessages,
+      });
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(e);
@@ -254,10 +268,18 @@ app.get('/:data?', async (req, res) => {
   const data = await getData(50, (curPage * 50));
   const amount = await getAmountOfData();
   try {
-    res.render('index', { title: 'Undirskriftarlisti', data, errorMessages, usertest, amount, curPage });
+    return res.render('index', {
+      title: 'Undirskriftarlisti',
+      data,
+      errorMessages,
+      usertest,
+      amount,
+      curPage,
+    });
   } catch (e) {
     // eslint-disable-next-line no-console
     console.log(e);
+    return 'no data';
   }
 });
 
