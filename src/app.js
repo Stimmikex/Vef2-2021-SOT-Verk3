@@ -109,7 +109,7 @@ app.post(
   },
 );
 
-const sessionSecret = '489vlkS4jvhpakjv.,mnzjhDF4i1!';
+const sessionSecret = 'leyndarmál';
 
 app.use(session({
   secret: sessionSecret,
