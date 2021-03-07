@@ -35,11 +35,9 @@ function makeFaker() {
   return person;
 }
 
-function initData() {
+export function initData() {
   for (let i = 0; i < 500; i += 1) {
     const person = makeFaker();
     query('INSERT INTO signatures(name, nationalId, comment, anonymous, signed) VALUES($1, $2, $3, $4, $5) RETURNING *', [person.name, person.ssn, person.text, person.anon, person.date]);
   }
 }
-
-initData();
