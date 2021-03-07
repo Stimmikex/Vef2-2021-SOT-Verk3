@@ -1,7 +1,7 @@
 import pg from 'pg';
 import dotenv from 'dotenv';
 import { promises as fs } from 'fs';
-import { datainit } from './faker.js';
+import { initData } from './faker.js';
 
 async function readFileAsync(sql) {
   try {
@@ -65,7 +65,7 @@ async function main() {
 
   // bæta færslum við töflu
   try {
-    datainit();
+    initData();
     console.info('Gögnum bætt við');
   } catch (e) {
     console.error('Villa við að bæta gögnum við:', e.message);
